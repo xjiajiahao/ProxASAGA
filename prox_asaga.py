@@ -37,16 +37,17 @@ def _logistic_loss(A, b, alpha, beta, x):
     return out
 
 def minimize_SAGA(A, b, alpha, beta, step_size, max_iter=100, n_jobs=1):
+    # @NOTE max_iter: number of epochs
     n_samples, n_features = A.shape
     A = sparse.csr_matrix(A, dtype=np.float)
     indices = A.indices.astype(np.int64)
     indptr = A.indptr.astype(np.int64)
-    x = np.zeros(n_features)
+    x = np.zeros(n_features)  # the iterate
 
     d = _compute_D(A)
     print('Delta (sparsity measure) = %s' % (1.0 / np.min(d[d != 0])))
 
-    trace_x = np.zeros((max_iter + 1, n_features))
+    trace_x = np.zeros((max_iter + 1, n_features))  # seems that we have to save every x_t
     trace_time = np.zeros(max_iter + 1)
     C.cffi_prox_asaga(
         ffi.cast("double *", x.ctypes.data), ffi.cast("double *", A.data.ctypes.data),
@@ -58,7 +59,7 @@ def minimize_SAGA(A, b, alpha, beta, step_size, max_iter=100, n_jobs=1):
     func_trace = np.array([
         _logistic_loss(A, b, alpha, beta, xi) for xi in trace_x])
 
-    return x, trace_time[:-2], func_trace[:-2]
+    return x, trace_time[:-2], func_trace[:-2] # why the last two iterates are not returned
 
 
 if __name__ == '__main__':
@@ -69,16 +70,16 @@ if __name__ == '__main__':
     X = sparse.random(n_samples, n_features, density=5. / n_samples)
     w = sparse.random(1, n_features, density=1e-3)
     y = np.sign(X.dot(w.T).toarray().ravel() + np.random.randn(n_samples))  # y = sign(X w + noise)
-    n_samples, n_features = X.shape
-    beta = 1e-10
-    alpha = 1. / n_samples
+    n_samples, n_features = X.shape # why we need to reset n_samples and n_features ???
+    beta = 1e-10  # l1-coef
+    alpha = 1. / n_samples  # strong convexity coefficient (l2-coef)
 
-    L = 0.25 * np.max(X.multiply(X).sum(axis=1)) + alpha * n_samples
+    L = 0.25 * np.max(X.multiply(X).sum(axis=1)) + alpha * n_samples # compute Lipschitz constant, but @NOTE why alpha * n_samples instead of alpha???
     print('data loaded')
 
     step_size_SAGA = 1.0 / (3 * L)
     markers = ['^', 'h', 'o', 's', 'x']
-    for i, n_jobs in enumerate([1, 2, 3, 4]):
+    for i, n_jobs in enumerate([1, 2, 3, 4]):  # the enumerate() function adds a counter (start from 0) to an iterable
         print('Running %s jobs' % n_jobs)
         x, trace_time, func_trace = minimize_SAGA(
             X, y, alpha, beta, step_size_SAGA, max_iter=int(200 / n_jobs), n_jobs=n_jobs)

@@ -156,7 +156,7 @@ int prox_asaga(
         int64_t n_threads, double alpha, double beta, double step_size,
         int64_t max_iter, double* trace_x, double* trace_time, int64_t iter_freq) {
 
-    std::vector<std::thread> threads;
+    std::vector<std::thread> threads;  // @NOTE vector of threads
     std::atomic<double>* memory_gradient;
     std::atomic<double>* gradient_average;
     double* memory_gradient_nonatomic;
