@@ -10,7 +10,7 @@ ffi.cdef("""
     """)
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
-C = ffi.dlopen(dir_path + '/libasaga.so')
+C = ffi.dlopen(dir_path + '/libasaga.so')  # @NOTE get shared library
 
 
 def _compute_D(A):
