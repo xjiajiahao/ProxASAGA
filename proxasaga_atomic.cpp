@@ -41,8 +41,8 @@ void saga_single_thread(
         double* trace_time, int thread_id, int64_t iter_freq) {
     int64_t i, j, j_idx, local_counter=0;
     double p, grad_i, incr, old_grad, delta;
-    std::random_device rd;
-    std::mt19937 rng(rd());
+    std::random_device rd;  // Will be used to obtain a seed for the random number engine
+    std::mt19937 rng(rd());  // Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<int64_t> uni(0, n_samples-1);
     struct timespec start, finish;
     double elapsed;
@@ -63,8 +63,8 @@ void saga_single_thread(
           printf(".. iteration %lld, time elapsed %f min ..\n", (long long)c, elapsed / 60.);
       }
 
-      i = uni(rng);
-      p = 0.;
+      i = uni(rng);  // generates the next random number in the distribution
+      p = 0.;  // compute inner product
       for (j=A_indptr[i]; j < A_indptr[i+1]; j++) {
           j_idx = A_indices[j];
           p += x[j_idx] * A_data[j];
@@ -72,7 +72,7 @@ void saga_single_thread(
       grad_i = partial_gradient(p, b[i]);
       old_grad = memory_gradient[i].load();
       while (!memory_gradient[i].compare_exchange_weak(old_grad, grad_i))
-          ;
+          ;  // try to set the value until it succeeds, @NOTE memory_gradient[i] will be loaded into old_grad if it fails
       incr = grad_i - old_grad;
 
       // .. update coefficients ..
@@ -102,7 +102,7 @@ void saga_single_thread_nonatomic(
           int64_t i, j, j_idx, local_counter=0;
           double p, grad_i, incr, old_grad, delta;
           std::random_device rd;
-          std::mt19937 rng(rd());
+          std::mt19937 rng(rd());  // random number engine
           std::uniform_int_distribution<int64_t> uni(0, n_samples-1);
           struct timespec start, finish;
           double elapsed;
