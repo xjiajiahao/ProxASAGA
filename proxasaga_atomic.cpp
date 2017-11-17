@@ -39,7 +39,7 @@ void saga_single_thread(
         double* d, int64_t n_samples, int64_t n_features, double alpha,
         double beta, double step_size, int64_t max_iter, double* trace_x,
         double* trace_time, int thread_id, int64_t iter_freq) {
-    int64_t i, j, j_idx, local_counter=0, global_counter;
+    int64_t i, j, j_idx, local_counter=0;
     double p, grad_i, incr, old_grad, delta;
     std::random_device rd;
     std::mt19937 rng(rd());
@@ -60,7 +60,7 @@ void saga_single_thread(
           elapsed = (finish.tv_sec - start.tv_sec);
           elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
           trace_time[c] = (double) elapsed;
-          printf(".. iteration %lld, time elapsed %f min ..\n", c, elapsed / 60.);
+          printf(".. iteration %lld, time elapsed %f min ..\n", (long long)c, elapsed / 60.);
       }
 
       i = uni(rng);
@@ -85,7 +85,7 @@ void saga_single_thread(
       local_counter ++;
       if (local_counter >= iter_freq * max_iter){
           if (thread_id == 0) {
-              printf("..  done %lld iterations ..\n", local_counter / iter_freq);
+              printf("..  done %lld iterations ..\n", (long long)local_counter / iter_freq);
           }
           return;
       }
@@ -99,7 +99,7 @@ void saga_single_thread_nonatomic(
         double* A_data, int64_t* A_indices, int64_t* A_indptr, double* b, double* d, int64_t n_samples,
         int64_t n_features, double alpha, double beta, double step_size, int64_t max_iter,
         double* trace_x, double* trace_time, int64_t iter_freq) {
-          int64_t i, j, j_idx, local_counter=0, global_counter;
+          int64_t i, j, j_idx, local_counter=0;
           double p, grad_i, incr, old_grad, delta;
           std::random_device rd;
           std::mt19937 rng(rd());
@@ -120,7 +120,7 @@ void saga_single_thread_nonatomic(
                 elapsed = (finish.tv_sec - start.tv_sec);
                 elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
                 trace_time[c] = (double) elapsed;
-                printf(".. iteration %lld, time elapsed %f min ..\n", c, elapsed / 60.);
+                printf(".. iteration %lld, time elapsed %f min ..\n", (long long)c, elapsed / 60.);
             }
 
             i = uni(rng);
@@ -143,7 +143,7 @@ void saga_single_thread_nonatomic(
             }
             local_counter ++;
             if (local_counter >= iter_freq * max_iter){
-                printf("..  done %lld iterations ..\n", local_counter / iter_freq);
+                printf("..  done %lld iterations ..\n", (long long)local_counter / iter_freq);
                 return;
             }
         }
@@ -159,7 +159,7 @@ int prox_asaga(
     std::vector<std::thread> threads;  // @NOTE vector of threads
     std::atomic<double>* memory_gradient;
     std::atomic<double>* gradient_average;
-    double* memory_gradient_nonatomic;
+    double* memory_gradient_nonatomic;  // ordinary double array
     double* gradient_average_nonatomic;
 
     if (n_threads == 1) {
